@@ -1,0 +1,11 @@
+{
+  "uid": "paddock_event_management",
+  "type": "card",
+  "config": {
+    "name": "Event Capacity & Tickets",
+    "description": "Create and manage Event Engine capacity, ticket types, pricing, registrations, refunds, and attendance operations.",
+    "location": "crm.record.tab",
+    "entrypoint": "/app/cards/EventManagement.tsx",
+    "objectTypes": ["MARKETING_EVENTS"]
+  }
+}

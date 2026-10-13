@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#111827" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Paddock Check-in</title>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --bg: #111827;
+        --surface: #1f2937;
+        --border: #374151;
+        --text: #f9fafb;
+        --muted: #9ca3af;
+        --green: #22c55e;
+        --red: #ef4444;
+        --yellow: #eab308;
+        --blue: #3b82f6;
+        --accent: #6366f1;
+      }
+
+      html, body {
+        height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-size: 16px;
+        line-height: 1.4;
+        overflow: hidden;
+      }
+
+      #app { height: 100%; display: flex; flex-direction: column; }
+
+      .screen { display: none; flex-direction: column; height: 100%; }
+      .screen.active { display: flex; }
+
+      /* ---- Setup screen ---- */
+      #screen-setup {
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        gap: 1.5rem;
+      }
+
+      #screen-setup h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--accent);
+      }
+
+      #screen-setup p.subtitle {
+        color: var(--muted);
+        font-size: 0.9rem;
+        text-align: center;
+      }
+
+      form#setup-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        width: 100%;
+        max-width: 400px;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.375rem;
+      }
+
+      label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      input[type="url"], input[type="text"], input[type="search"] {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        color: var(--text);
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        width: 100%;
+        outline: none;
+        -webkit-appearance: none;
+      }
+
+      input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px rgba(99,102,241,0.25);
+      }
+
+      button {
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.15s;
+      }
+
+      button:disabled { opacity: 0.5; cursor: default; }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #fff;
+        width: 100%;
+      }
+
+      .btn-secondary {
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
+      .error-msg {
+        color: var(--red);
+        font-size: 0.875rem;
+        text-align: center;
+        min-height: 1.2em;
+      }
+
+      /* ---- Scanner screen ---- */
+      #screen-scanner { position: relative; }
+
+      header#scanner-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        padding-top: max(0.75rem, env(safe-area-inset-top));
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        z-index: 10;
+        flex-shrink: 0;
+      }
+
+      #event-name {
+        flex: 1;
+        font-weight: 600;
+        font-size: 0.95rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      #stats-badge {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+
+      #online-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--red);
+        flex-shrink: 0;
+        transition: background 0.3s;
+      }
+      #online-indicator.online { background: var(--green); }
+
+      /* Camera area */
+      #camera-wrap {
+        flex: 1;
+        position: relative;
+        background: #000;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #camera {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      #qr-canvas { display: none; }
+
+      /* Scan viewfinder guide */
+      #viewfinder {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: min(65vw, 65vh);
+        height: min(65vw, 65vh);
+        pointer-events: none;
+      }
+
+      #viewfinder::before, #viewfinder::after,
+      #viewfinder > span::before, #viewfinder > span::after {
+        content: '';
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        border-color: rgba(255,255,255,0.8);
+        border-style: solid;
+        border-width: 0;
+      }
+      #viewfinder::before { top:0; left:0; border-top-width:3px; border-left-width:3px; border-radius:3px 0 0 0; }
+      #viewfinder::after  { top:0; right:0; border-top-width:3px; border-right-width:3px; border-radius:0 3px 0 0; }
+      #viewfinder > span::before { bottom:0; left:0; border-bottom-width:3px; border-left-width:3px; border-radius:0 0 0 3px; }
+      #viewfinder > span::after  { bottom:0; right:0; border-bottom-width:3px; border-right-width:3px; border-radius:0 0 3px 0; }
+
+      /* Scan result overlay */
+      #scan-result-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      #scan-result-overlay.visible { opacity: 1; }
+
+      #scan-result-bg {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.75);
+      }
+
+      #scan-result-card {
+        position: relative;
+        background: var(--surface);
+        border: 2px solid var(--border);
+        border-radius: 1rem;
+        padding: 1.25rem 1.75rem;
+        text-align: center;
+        min-width: 240px;
+        max-width: 85vw;
+      }
+
+      #scan-result-card.ok { border-color: var(--green); }
+      #scan-result-card.warn { border-color: var(--yellow); }
+      #scan-result-card.fail { border-color: var(--red); }
+
+      #scan-icon { font-size: 2.5rem; line-height: 1; }
+      #scan-name { font-size: 1.15rem; font-weight: 700; margin-top: 0.25rem; }
+      #scan-status { font-size: 0.85rem; color: var(--muted); margin-top: 0.2rem; }
+      /* Registration answers (Ref 74d). Door staff read these at arm's length while
+         someone waits, so they are larger than the status line and left-aligned. */
+      #scan-answers { margin-top: 0.5rem; text-align: left; }
+      #scan-answers:empty { display: none; }
+      .scan-answer { font-size: 0.9rem; margin-top: 0.25rem; }
+      .scan-answer-label { color: var(--muted); }
+      .scan-answer-value { font-weight: 700; }
+      .search-row-answers { font-size: 0.75rem; color: var(--muted); }
+
+      /* Bottom area: search + footer */
+      #bottom-area {
+        flex-shrink: 0;
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        padding: 0.75rem 1rem;
+        padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      #search-wrap {
+        position: relative;
+      }
+
+      #search-input {
+        padding-left: 2.25rem;
+        background: var(--bg);
+      }
+
+      #search-icon {
+        position: absolute;
+        left: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted);
+        font-size: 1rem;
+        pointer-events: none;
+      }
+
+      #search-results {
+        max-height: 200px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      .search-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        background: var(--bg);
+        border: 1px solid var(--border);
+      }
+      .search-row:hover { border-color: var(--accent); }
+
+      .search-row-name { flex: 1; font-size: 0.9rem; }
+      .search-row-status {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.2rem 0.5rem;
+        border-radius: 999px;
+      }
+      .search-row-status.issued { background: rgba(99,102,241,0.2); color: var(--accent); }
+      .search-row-status.checked_in { background: rgba(34,197,94,0.2); color: var(--green); }
+
+      #footer-row {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      #footer-row button {
+        flex: 1;
+        padding: 0.6rem;
+        font-size: 0.85rem;
+      }
+
+      #pending-badge {
+        font-size: 0.7rem;
+        color: var(--yellow);
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <!-- Setup screen -->
+      <div id="screen-setup" class="screen">
+        <h1>Paddock Check-in</h1>
+        <p class="subtitle">Enter your worker URL and the device token issued by an admin.</p>
+        <form id="setup-form">
+          <div class="field">
+            <label for="server-url">Worker URL</label>
+            <input id="server-url" type="url" placeholder="https://event-engine.example.workers.dev" autocomplete="url" required />
+          </div>
+          <div class="field">
+            <label for="device-token">Device Token</label>
+            <input id="device-token" type="text" placeholder="Paste token from admin" autocomplete="off" required />
+          </div>
+          <button type="submit" class="btn-primary" id="connect-btn">Connect &amp; Sync</button>
+        </form>
+        <p class="error-msg" id="setup-error"></p>
+      </div>
+
+      <!-- Scanner screen -->
+      <div id="screen-scanner" class="screen">
+        <header id="scanner-header">
+          <div id="event-name">Loading…</div>
+          <div id="stats-badge">— / —</div>
+          <div id="online-indicator" title="Network status"></div>
+        </header>
+
+        <div id="camera-wrap">
+          <video id="camera" autoplay muted playsinline></video>
+          <canvas id="qr-canvas"></canvas>
+          <div id="viewfinder"><span></span></div>
+
+          <div id="scan-result-overlay">
+            <div id="scan-result-bg"></div>
+            <div id="scan-result-card">
+              <div id="scan-icon">✓</div>
+              <div id="scan-name"></div>
+              <div id="scan-status"></div>
+              <div id="scan-answers"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="bottom-area">
+          <div id="search-wrap">
+            <span id="search-icon">⌕</span>
+            <input id="search-input" type="search" placeholder="Manual search by name…" />
+          </div>
+          <div id="search-results"></div>
+          <div id="pending-badge"></div>
+          <div id="footer-row">
+            <button class="btn-secondary" id="btn-sync">↻ Sync</button>
+            <button class="btn-secondary" id="btn-reset">Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/app.ts"></script>
+  </body>
+</html>

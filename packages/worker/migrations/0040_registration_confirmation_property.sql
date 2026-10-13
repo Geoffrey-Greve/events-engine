@@ -1,0 +1,22 @@
+-- migrations/0040_registration_confirmation_property.sql
+--
+-- Where a portal keys the registration-confirmation trigger. (Ref 61.)
+--
+-- The worker stamps the buyer's ORDER id onto the attendee's contact after a booking is
+-- confirmed, and a HubSpot workflow watches that property to send the confirmation email.
+-- The order id rather than the registration id because a course package or a multi-seat
+-- checkout is one order across many registration rows: stamping the registration id would
+-- change the value once per seat and re-enrol the workflow once per seat.
+--
+-- Mapped per tenant for the same reason every other contact write-back is (Phase 1.2,
+-- migration 0026): the property name is the TENANT's schema, not the product's. A
+-- hardcoded name is the failure 0026 removed from the join URL — a portal that keys this
+-- elsewhere gets its write-back sent to a field nothing reads, and a portal that has not
+-- created the property at all gets a 400 that kills the outbox row.
+--
+--   NULL   — use `last_event_engine_registration_id`, the name the worker provisions and
+--            the name the shipped workflow spec reads. No portal changes on deploy.
+--   'off'  — do not write it. A tenant whose confirmation email is driven some other way
+--            (or not at all) collects no dead outbox rows for a property nobody wants.
+--   other  — the portal's own property name.
+ALTER TABLE tenants ADD COLUMN contact_registration_confirmation_property TEXT;

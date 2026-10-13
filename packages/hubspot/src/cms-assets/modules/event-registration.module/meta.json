@@ -1,0 +1,14 @@
+{
+  "label": "Event registration",
+  "module_id": null,
+  "is_available_for_new_content": true,
+  "global": false,
+  "host_template_types": ["PAGE"],
+  "content_types": ["PAGE"],
+  "css_assets": [],
+  "js_assets": [],
+  "smart_type": "NOT_SMART",
+  "categories": ["forms"],
+  "tags": [],
+  "help_text": "Live event registration. Reads availability and reserves seats from the event-engine worker; never reads HubDB for counts. Place on an `events` HubDB dynamic page so it can read the current event row."
+}

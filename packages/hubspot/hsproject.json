@@ -1,0 +1,6 @@
+{
+  "name": "event-registration",
+  "srcDir": "src",
+  "platformVersion": "2026.03",
+  "components": [{ "path": "cms-assets", "type": "cms-assets" }, { "path": "app", "type": "app" }]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "@paddock/checkin-pwa",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "deploy": "vite build && wrangler pages deploy dist --project-name=paddock-checkin",
+    "deploy:staging": "vite build && wrangler pages deploy dist --project-name=paddock-checkin-staging"
+  },
+  "dependencies": {
+    "@paddock/shared": "workspace:*",
+    "jsqr": "^1.4.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0",
+    "vite": "^6.3.0",
+    "vite-plugin-pwa": "^1.0.0"
+  }
+}

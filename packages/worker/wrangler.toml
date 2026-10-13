@@ -1,0 +1,140 @@
+name = "event-engine"
+account_id = "bb730132461884f96673a371793dd3e7"
+main = "src/index.ts"
+compatibility_date = "2025-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ---------------------------------------------------------------------------
+# PRODUCTION
+# The former event-engine-staging Worker was renamed to event-engine and is
+# the live Weld deployment. D1 / KV / queue keep their original Cloudflare
+# names (-staging); do not retarget these bindings to empty resources.
+# Deploy with: wrangler deploy --env=""
+# Secrets: wrangler secret put <NAME> --env=""
+#
+# event-engine-staging.refuel-creative.workers.dev no longer resolves. Do not
+# deploy another Worker (or a reverse proxy) under that name. Anything still
+# pointing at it is supposed to fail so it gets moved onto event-engine.
+# ---------------------------------------------------------------------------
+
+# Workers Logs – persist invocation + console logs in the dashboard.
+# Named environments do not inherit this; [env.dev] repeats it below.
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = true
+invocation_logs = true
+
+[triggers]
+crons = ["*/5 * * * *", "0 */12 * * *", "*/15 * * * *"]
+
+# ---------------------------------------------------------------------------
+# D1 – durable record store (orders, registrations, tickets, outbox)
+# ---------------------------------------------------------------------------
+[[d1_databases]]
+binding = "DB"
+database_name = "event-engine-db-staging"
+database_id = "94f2d139-a4f6-41cd-9e16-f4bf81af6827"
+migrations_dir = "migrations"
+
+# ---------------------------------------------------------------------------
+# Durable Objects – atomic seat math (one instance per event)
+# DOs are placed close to where they're first created; AU traffic naturally
+# lands in AU edge PoPs so these will colocate with requests.
+# ---------------------------------------------------------------------------
+[[durable_objects.bindings]]
+name = "EVENT_CAPACITY"
+class_name = "EventCapacity"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["EventCapacity"]
+
+# ---------------------------------------------------------------------------
+# KV – Graph token + subscription-id cache
+# ---------------------------------------------------------------------------
+[[kv_namespaces]]
+binding = "KV"
+id = "34a86a748dd6446eba89d31136a3f90b"
+
+# ---------------------------------------------------------------------------
+# Queues – outbox drain (HubSpot write-back) with DLQ
+# ---------------------------------------------------------------------------
+[[queues.producers]]
+binding = "QUEUE"
+queue = "event-engine-jobs-staging"
+
+[[queues.consumers]]
+queue = "event-engine-jobs-staging"
+dead_letter_queue = "event-engine-jobs-staging-dlq"
+max_retries = 3
+# Paced for HubSpot, not for Cloudflare. Left unset, consumer concurrency AUTO-SCALES (up
+# to 250 invocations), and every outbox message makes several HubSpot calls — at least one
+# of which is a contact search, the tightest limit a portal has at a handful of requests a
+# second against ~19/s for the rest of the CRM v3 API. So any burst (a re-drive, a ten-seat
+# corporate booking, a reconcile sweep re-enqueuing 50 rows) could outrun the portal and
+# earn a wall of 429s. Those degrade correctly — `hs()` reads `Retry-After` and the row
+# retries — but they spend queue attempts on work that was never wrong.
+#
+# `queue()` in index.ts processes a batch SEQUENTIALLY (`for…of` with `await`), so
+# concurrency is the number of messages in flight: 3 means at most 3 HubSpot calls at once,
+# which stays under the search limit even when HubSpot answers fast. A batch of 5 rather
+# than the default 10 keeps one invocation's wall time bounded when HubSpot is slow.
+#
+# These are queue-wide, so they pace every tenant together. That is right while the
+# installed base is one portal; the moment it is not, the answer is per-portal pacing
+# (a token bucket in a DO), not a bigger number here.
+max_batch_size = 5
+max_concurrency = 3
+
+# ===========================================================================
+# DEVELOPMENT environment
+# Fully isolated from production. The resources below are new and empty:
+# never substitute a production binding here.
+# Secrets must be set with `wrangler secret put <NAME> --env dev` and must use
+# test-only integration credentials where those are available.
+# ===========================================================================
+
+[env.dev]
+name = "event-engine-dev"
+account_id = "bb730132461884f96673a371793dd3e7"
+
+[env.dev.observability]
+enabled = true
+
+[env.dev.observability.logs]
+enabled = true
+invocation_logs = true
+
+# Keep scheduled jobs disabled until a test portal and test integration
+# credentials are configured. The Worker can still be exercised directly.
+[env.dev.triggers]
+crons = []
+
+[[env.dev.d1_databases]]
+binding = "DB"
+database_name = "event-engine-db-dev"
+database_id = "4193f933-eef8-46fe-bad1-e8daa45b05f2"
+migrations_dir = "migrations"
+
+[[env.dev.durable_objects.bindings]]
+name = "EVENT_CAPACITY"
+class_name = "EventCapacity"
+
+[[env.dev.kv_namespaces]]
+binding = "KV"
+id = "b7e757e505104c5aa8b724810e55d1c2"
+
+[[env.dev.queues.producers]]
+binding = "QUEUE"
+queue = "event-engine-jobs-dev"
+
+[[env.dev.queues.consumers]]
+queue = "event-engine-jobs-dev"
+dead_letter_queue = "event-engine-jobs-dev-dlq"
+max_retries = 3
+# Same pacing as production. A dev queue that drains differently is a dev queue whose
+# burst behaviour proves nothing about the one that matters.
+max_batch_size = 5
+max_concurrency = 3

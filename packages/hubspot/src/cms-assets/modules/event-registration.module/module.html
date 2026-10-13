@@ -1,0 +1,150 @@
+{#
+  event-registration — module.html
+
+  Renders the registration form skeleton and emits a JSON config block that module.js
+  reads. All live behaviour (availability, reserve, polling, redirect) is in module.js so
+  that nothing about seat counts is ever baked into server-rendered HTML.
+
+  This module expects to run on an `events` HubDB dynamic page, so it can read the current
+  event from `dynamic_page_hubdb_row`. If rendered off a dynamic page it degrades to a
+  notice rather than erroring.
+#}
+
+{% set event = dynamic_page_hubdb_row %}
+
+{% if not event %}
+  <p class="evt-reg__status">Registration is available on an event page.</p>
+{% else %}
+
+  {# Worker connection — module field first, then a theme setting fallback, never hard-coded. #}
+  {% set worker_base_url = module.worker.worker_base_url or theme.event_engine.worker_base_url or "" %}
+  {# X-Portal-Id defaults to this account's Hub ID; override only if the worker differs.       #}
+  {% set portal_id = module.worker.portal_id or hub_id %}
+
+  {# Ticket types for this event — content only (name/price/flags). Availability is fetched   #}
+  {# live by module.js from the worker; HubDB never carries counts.                           #}
+  {% set ticket_types = hubdb_table_rows("ticket_types", "event_path=" ~ event.hs_path ~ "&orderBy=sort_order") %}
+
+  {% set config = {
+    "workerBaseUrl": worker_base_url,
+    "portalId": portal_id ~ "",
+    "workerEventId": event.worker_event_id,
+    "eventPath": event.hs_path,
+    "eventTitle": event.title,
+    "isOnline": event.is_online ? true : false,
+    "captureAbn": module.registration.capture_abn ? true : false,
+    "allowGroup": module.registration.allow_group ? true : false,
+    "maxAttendees": module.registration.allow_group ? module.registration.max_attendees : 1,
+    "copy": {
+      "submit": module.copy.submit_label,
+      "waitlisted": module.copy.waitlist_message,
+      "confirmed": module.copy.confirmed_message
+    },
+    "endpoints": {
+      "availability": "/api/v1/events/{slug}/availability",
+      "reserve": "/api/v1/events/{slug}/reserve",
+      "order": "/api/v1/orders/{id}"
+    },
+    "ticketTypes": []
+  } %}
+  {% for tt in ticket_types %}
+    {% do config.ticketTypes.append({
+      "id": tt.worker_ticket_type_id,
+      "name": tt.name,
+      "description": tt.description,
+      "priceCents": tt.price_cents,
+      "currency": tt.currency or "AUD",
+      "memberOnly": tt.member_only ? true : false,
+      "maxPerOrder": tt.max_per_order
+    }) %}
+  {% endfor %}
+
+  <form class="evt-reg" data-evt-reg novalidate
+        aria-describedby="evt-reg-status-{{ name }}">
+
+    <script type="application/json" data-evt-config>{{ config|tojson }}</script>
+
+    {% if not worker_base_url %}
+      <p class="evt-reg__status" role="alert">
+        Registration isn't configured yet (missing worker URL).
+      </p>
+    {% endif %}
+
+    {# ---- Ticket selection (quantities). Availability injected by module.js. ---- #}
+    <fieldset class="evt-reg__tickets" data-evt-tickets>
+      <legend>Tickets</legend>
+      {% for tt in ticket_types %}
+        <label class="evt-reg__ticket" data-ticket-id="{{ tt.worker_ticket_type_id }}">
+          <span class="evt-reg__ticket-meta">
+            <span class="evt-reg__ticket-name">
+              {{ tt.name }}{% if tt.member_only %} <small>(members only)</small>{% endif %}
+            </span>
+            <span class="evt-reg__ticket-price">
+              {% if tt.price_cents and tt.price_cents > 0 %}
+                {{ (tt.price_cents / 100)|format_currency(tt.currency or "AUD") }}
+              {% else %}Free{% endif %}
+            </span>
+            <span class="evt-reg__ticket-avail" data-evt-avail aria-live="polite">Checking availability…</span>
+          </span>
+          <input type="number" name="qty_{{ tt.worker_ticket_type_id }}"
+                 min="0" max="{{ tt.max_per_order|default(10, true) }}" step="1" value="0"
+                 inputmode="numeric" data-evt-qty />
+        </label>
+      {% endfor %}
+    </fieldset>
+
+    {# ---- Buyer ---- #}
+    <fieldset class="evt-reg__buyer">
+      <legend>Your details</legend>
+      <label class="evt-reg__field">
+        <span>Full name</span>
+        <input type="text" name="buyer_name" autocomplete="name" required />
+      </label>
+      <label class="evt-reg__field">
+        <span>Email</span>
+        <input type="email" name="buyer_email" autocomplete="email" required />
+      </label>
+      {% if module.registration.capture_abn %}
+        <label class="evt-reg__field">
+          <span>ABN <small>(optional — for company tax invoices)</small></span>
+          <input type="text" name="buyer_abn" inputmode="numeric" autocomplete="off"
+                 pattern="[0-9 ]*" />
+        </label>
+      {% endif %}
+    </fieldset>
+
+    {# ---- Per-attendee fields (group). Rows are cloned by module.js from this template. ---- #}
+    {% if module.registration.allow_group %}
+      <fieldset class="evt-reg__attendees" data-evt-attendees>
+        <legend>Attendees</legend>
+        <p class="evt-reg__hint">One row per ticket. Add the people attending — each gets their own confirmation and ticket.</p>
+        <div data-evt-attendee-list></div>
+        <template data-evt-attendee-template>
+          <div class="evt-reg__attendee" data-evt-attendee>
+            <div class="evt-reg__attendee-grid">
+              <label class="evt-reg__field">
+                <span>Attendee name</span>
+                <input type="text" name="attendee_name" autocomplete="off" />
+              </label>
+              <label class="evt-reg__field">
+                <span>Attendee email</span>
+                <input type="email" name="attendee_email" autocomplete="off" />
+              </label>
+            </div>
+            <label class="evt-reg__field">
+              <span>Ticket</span>
+              <select name="attendee_ticket" data-evt-attendee-ticket></select>
+            </label>
+          </div>
+        </template>
+      </fieldset>
+    {% endif %}
+
+    <p class="evt-reg__status" data-evt-status id="evt-reg-status-{{ name }}" role="status" aria-live="polite" hidden></p>
+
+    <button type="submit" class="evt-reg__button" data-evt-submit>
+      {{ module.copy.submit_label|default("Register", true) }}
+    </button>
+  </form>
+
+{% endif %}

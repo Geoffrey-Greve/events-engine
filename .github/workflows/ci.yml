@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Cheap and independent of the install graph — fails fast on a duplicate
+      # migration prefix, which would otherwise leave apply order to filename
+      # tie-breaks rather than intent.
+      - name: Check D1 migration sequence
+        run: pnpm check:migrations
+
+      # The 39 pre-existing biome errors this step waited on are gone: `biome check .`
+      # is clean across all 162 files. Gating it now, because the backlog it was waiting
+      # for cannot come back without someone noticing.
+      - name: Lint
+        run: pnpm lint
+
+      # Same class of failure as the migration check: an undeclared OAuth scope or a
+      # component with no hsmeta is invisible locally (tests stub fetch, editors happily
+      # open dead files) and only shows up as a 403 in production or a card that never
+      # updates.
+      - name: Check HubSpot app manifest
+        run: pnpm check:hubspot-app
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+  # Proves the numbered migrations still build the current schema from nothing,
+  # not just from whatever a long-lived dev database happens to already have.
+  migrations-from-empty:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/worker
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+        working-directory: .
+
+      - name: Apply every migration to an empty local D1
+        run: pnpm exec wrangler d1 migrations apply DB --local --persist-to "$RUNNER_TEMP/d1"

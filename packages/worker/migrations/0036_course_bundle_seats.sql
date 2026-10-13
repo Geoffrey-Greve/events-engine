@@ -1,0 +1,26 @@
+-- migrations/0036_course_bundle_seats.sql
+--
+-- How many seats a complete-course order holds in each of its modules.
+--
+-- The bundle ledger recorded WHICH module seats an order holds but not HOW MANY.
+-- Holding and confirming assumed one, while payment confirmation clones EVERY parent
+-- attendee into every module — so a four-attendee package took one seat in each child
+-- Durable Object and then wrote four child registrations and tickets against it. The
+-- module oversells by three, immediately, and the DO is not wrong: it was only ever
+-- asked for one.
+--
+-- Existing rows are single-seat by the only reading available: the pre-0036 hold took
+-- one seat, whatever the order went on to register. That is the truth about the HOLD, and
+-- deliberately not a guess at what the booking needs — the two are reconciled where both
+-- are known rather than here.
+--
+-- A package booked before this migration and still awaiting payment therefore arrives at
+-- confirmation holding one seat for a party of four. `confirmCourseBundleComponents` sees
+-- the shortfall against the parent attendees it is about to write into the module and
+-- takes the difference through the Durable Object, which grants it only if the module
+-- really has the seats and otherwise sends the order to needs_review for an owner. A
+-- package that ALREADY confirmed under the old code is over its module capacity and is a
+-- count to repair by hand: those seats were written months ago and no arithmetic here
+-- brings them back.
+
+ALTER TABLE course_bundle_components ADD COLUMN seats INTEGER NOT NULL DEFAULT 1;

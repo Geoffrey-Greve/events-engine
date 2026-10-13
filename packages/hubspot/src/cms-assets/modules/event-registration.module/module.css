@@ -1,0 +1,17 @@
+/*
+ * event-registration — module.css
+ *
+ * Status-state hooks only. No brand. The structural layout lives in the theme-level
+ * events.css; this file just gives the consuming theme attribute hooks to colour the
+ * status messages. Everything is overridable.
+ */
+.evt-reg__status[data-kind="error"] {
+  /* theme: error colour */
+}
+.evt-reg__status[data-kind="pending"] {
+  /* theme: in-progress colour */
+}
+.evt-reg__status[data-kind="confirmed"],
+.evt-reg__status[data-kind="waitlisted"] {
+  /* theme: success colour */
+}

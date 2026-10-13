@@ -1,0 +1,9 @@
+{
+  "label": "Event registration",
+  "description": "Dynamic event pages + the live registration module. Brand lives in the consuming theme; nothing tenant-specific is committed here.",
+  "assets": [
+    { "type": "template", "path": "templates/events.html" },
+    { "type": "module", "path": "modules/event-registration.module" },
+    { "type": "css", "path": "css/events.css" }
+  ]
+}

@@ -1,0 +1,131 @@
+/*
+ * events.css — minimal, unopinionated structural styling.
+ *
+ * Deliberately NO brand: no colour palette, no type scale, no fonts, no shadows.
+ * The consuming theme owns all of that. This file only provides neutral layout so the
+ * page is usable before a theme styles it. Everything here is safe to override.
+ */
+
+.evt-page {
+  max-width: 60rem;
+  margin: 0 auto;
+}
+
+/* Listing */
+.evt-listing {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+}
+.evt-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  text-decoration: none;
+  border: 1px solid currentColor;
+  padding: 1rem;
+}
+.evt-card__image {
+  width: 100%;
+  height: auto;
+}
+.evt-card__title {
+  font-weight: 600;
+}
+.evt-listing__empty {
+  opacity: 0.7;
+}
+
+/* Detail */
+.evt-detail__image {
+  max-width: 100%;
+  height: auto;
+}
+.evt-detail__tz {
+  opacity: 0.7;
+  font-size: 0.875em;
+}
+.evt-detail__register {
+  margin-top: 2rem;
+}
+
+/* Registration widget */
+.evt-reg {
+  display: grid;
+  gap: 1rem;
+}
+.evt-reg__tickets {
+  display: grid;
+  gap: 0.5rem;
+}
+.evt-reg__ticket {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid currentColor;
+  padding: 0.75rem;
+}
+.evt-reg__ticket[hidden] {
+  display: none;
+}
+.evt-reg__ticket-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+.evt-reg__ticket-avail {
+  font-size: 0.8125em;
+  opacity: 0.75;
+}
+.evt-reg__ticket-avail[data-state="soldout"] {
+  opacity: 1;
+}
+.evt-reg__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.evt-reg__field input {
+  padding: 0.5rem;
+}
+.evt-reg__attendees {
+  display: grid;
+  gap: 1rem;
+}
+.evt-reg__attendee {
+  display: grid;
+  gap: 0.5rem;
+  border: 1px solid currentColor;
+  padding: 0.75rem;
+}
+.evt-reg__attendee-grid {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: 1fr 1fr;
+}
+.evt-reg__hint {
+  font-size: 0.8125em;
+  opacity: 0.75;
+}
+.evt-reg__status {
+  padding: 0.75rem;
+  border: 1px solid currentColor;
+}
+.evt-reg__status[hidden] {
+  display: none;
+}
+.evt-reg__button {
+  padding: 0.625rem 1.25rem;
+  cursor: pointer;
+}
+.evt-reg__button[disabled] {
+  opacity: 0.5;
+  cursor: progress;
+}
+.evt-reg[aria-busy="true"] .evt-reg__button {
+  cursor: progress;
+}

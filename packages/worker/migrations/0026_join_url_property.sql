@@ -1,0 +1,24 @@
+-- migrations/0026_join_url_property.sql
+-- Make the online-event join URL's contact property tenant-mappable.
+--
+-- Every other contact write-back resolves its property name from `tenants` — the 1.2
+-- capture fields (0021), the 2.1 attendance trio (0023), the voucher fields (0018),
+-- membership (0012). `contact.set_join_url` was the one exception: it hardcoded
+-- `teams_join_url`, against the rule 1.2 was written to establish. A portal that keys the
+-- join link anywhere else had no way to say so, and the property provisioning added in
+-- Phase 6.1 could only create the name the code happened to contain.
+--
+-- Same convention as its neighbours:
+--   NULL  -> 'teams_join_url', the name the worker has always written and the one the
+--            workflow specs in packages/hubspot/src/cms-assets/workflows already read.
+--            An existing portal keeps working with no configuration.
+--   'off' -> do not write the join URL to the contact at all. Meaningful for a tenant whose
+--            confirmation email links to a landing page rather than a personal join URL.
+--   else  -> the portal keys it elsewhere; use that name.
+--
+-- Note the name is deliberately provider-neutral where the DEFAULT VALUE is not: Teams is
+-- one of several webinar providers behind the `WebinarProvider` interface, and Meet, Zoom,
+-- Wistia, ON24 and Vimeo all write their join link through this same property. Renaming the
+-- default would strand every portal's existing data and every workflow that reads it, so
+-- the default stays `teams_join_url` and a tenant that minds can now remap it.
+ALTER TABLE tenants ADD COLUMN contact_join_url_property TEXT;

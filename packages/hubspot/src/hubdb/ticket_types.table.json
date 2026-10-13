@@ -1,0 +1,62 @@
+{
+  "name": "ticket_types",
+  "label": "Ticket Types",
+  "useForPages": false,
+  "allowPublicApiAccess": true,
+  "allowChildTables": false,
+  "enableChildTablePages": false,
+  "columns": [
+    {
+      "name": "name",
+      "label": "Name",
+      "type": "TEXT"
+    },
+    {
+      "name": "worker_ticket_type_id",
+      "label": "Worker ticket type id",
+      "type": "TEXT"
+    },
+    {
+      "name": "event_path",
+      "label": "Event path (join key)",
+      "type": "TEXT"
+    },
+    {
+      "name": "event",
+      "label": "Event (reference)",
+      "type": "FOREIGN_ID",
+      "foreignTableId": "__EVENTS_TABLE_ID__",
+      "foreignColumnId": 1
+    },
+    {
+      "name": "price_cents",
+      "label": "Price (integer cents)",
+      "type": "NUMBER"
+    },
+    {
+      "name": "currency",
+      "label": "Currency",
+      "type": "TEXT"
+    },
+    {
+      "name": "member_only",
+      "label": "Member only",
+      "type": "BOOLEAN"
+    },
+    {
+      "name": "description",
+      "label": "Description",
+      "type": "TEXT"
+    },
+    {
+      "name": "max_per_order",
+      "label": "Max per order",
+      "type": "NUMBER"
+    },
+    {
+      "name": "sort_order",
+      "label": "Sort order",
+      "type": "NUMBER"
+    }
+  ]
+}

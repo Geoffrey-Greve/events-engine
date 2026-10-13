@@ -1,0 +1,24 @@
+-- migrations/0025_tenant_display_timezone.sql
+-- Phase 2.2 follow-up: the timezone a tenant's dates are READ in.
+--
+-- D1 keeps storing ISO 8601 UTC and that does not change. What was missing is the tenant's
+-- DISPLAY timezone, needed wherever an instant has to become a calendar date:
+--
+--   * the attendance date written to a contact, which a certificate prints. Adelaide is
+--     UTC+9:30 (+10:30 over daylight saving), so a 9am course whose attendees scan in from
+--     8:30 had a UTC date of the previous day — the wrong day on the certificate, for the
+--     morning courses that are the normal case in training.
+--   * a report's date range. HubSpot stores datetimes in UTC but its dashboards GROUP by the
+--     portal's timezone, so a HubSpot "June" is June in Adelaide. A UTC range dropped courses
+--     starting the morning of 1 June and picked up ones starting the morning of 1 July.
+--
+-- NULL means the built-in default (Australia/Adelaide), following the same convention as
+-- every other optional tenant column here. That default is where the first portals are, not
+-- a Weld-ism: an IANA name in this column is honoured as given, so a portal anywhere sets
+-- its own. An unrecognised name degrades to the default rather than failing a write-back —
+-- this is read on the path that writes attendance to a contact, and a typo in config must
+-- not be able to kill an outbox row.
+--
+-- HubSpot exposes the portal's timezone, so tenant provisioning can populate this rather
+-- than asking; until it does, the default covers the installed portals.
+ALTER TABLE tenants ADD COLUMN display_timezone TEXT;

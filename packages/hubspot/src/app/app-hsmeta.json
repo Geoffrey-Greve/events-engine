@@ -1,0 +1,56 @@
+{
+  "uid": "paddock_event_engine",
+  "type": "app",
+  "config": {
+    "description": "Capacity management, course and event checkout, invoicing, and attendance integration for Weld Australia.",
+    "name": "Manual Booking through Event Engine",
+    "distribution": "private",
+    "auth": {
+      "type": "oauth",
+      "redirectUrls": [
+        "https://event-engine-dev.refuel-creative.workers.dev/oauth/callback",
+        "https://event-engine.refuel-creative.workers.dev/oauth/callback"
+      ],
+      "requiredScopes": [
+        "oauth",
+        "crm.objects.marketing_events.read",
+        "crm.objects.marketing_events.write",
+        "crm.objects.contacts.read",
+        "crm.objects.contacts.write",
+        "crm.objects.deals.read",
+        "crm.objects.deals.write",
+        "crm.objects.line_items.read",
+        "crm.objects.line_items.write",
+        "crm.objects.invoices.read",
+        "crm.objects.invoices.write",
+        "crm.objects.products.read",
+        "crm.objects.companies.read",
+        "crm.objects.companies.write",
+        "tax_rates.read",
+        "crm.schemas.contacts.read",
+        "crm.schemas.contacts.write",
+        "crm.schemas.companies.read",
+        "crm.schemas.companies.write"
+      ],
+      "optionalScopes": [
+        "crm.objects.owners.read"
+      ],
+      "conditionallyRequiredScopes": []
+    },
+    "permittedUrls": {
+      "fetch": [
+        "https://event-engine-dev.refuel-creative.workers.dev",
+        "https://event-engine.refuel-creative.workers.dev",
+        "https://api.hubapi.com"
+      ],
+      "iframe": [],
+      "img": []
+    },
+    "support": {
+      "supportEmail": "training@weldaustralia.com.au",
+      "documentationUrl": "https://weldaustralia.com.au",
+      "supportUrl": "https://weldaustralia.com.au",
+      "supportPhone": "+61287486000"
+    }
+  }
+}

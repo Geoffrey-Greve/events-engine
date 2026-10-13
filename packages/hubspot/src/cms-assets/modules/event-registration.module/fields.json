@@ -1,0 +1,107 @@
+[
+  {
+    "id": "worker",
+    "name": "worker",
+    "label": "Worker connection",
+    "type": "group",
+    "expanded": true,
+    "children": [
+      {
+        "id": "worker_base_url",
+        "name": "worker_base_url",
+        "label": "Worker base URL",
+        "help_text": "Base URL of the event-engine worker, e.g. https://api.example-events.com. Per-portal configuration — never hard-coded in markup. Leave blank to fall back to a theme/app setting.",
+        "required": false,
+        "type": "text",
+        "default": ""
+      },
+      {
+        "id": "portal_id",
+        "name": "portal_id",
+        "label": "Portal id override",
+        "help_text": "Sent to the worker as the X-Portal-Id header. Defaults to this HubSpot account's Hub ID. Set only if the worker keys tenants on a different id.",
+        "required": false,
+        "type": "text",
+        "default": ""
+      }
+    ]
+  },
+  {
+    "id": "registration",
+    "name": "registration",
+    "label": "Registration options",
+    "type": "group",
+    "expanded": true,
+    "children": [
+      {
+        "id": "capture_abn",
+        "name": "capture_abn",
+        "label": "Capture buyer ABN (optional field)",
+        "help_text": "Show an optional ABN field for company orders. The worker stamps it on the invoice; ATO requires it for invoices >= AUD 1,000.",
+        "required": false,
+        "type": "boolean",
+        "display": "toggle",
+        "default": true
+      },
+      {
+        "id": "allow_group",
+        "name": "allow_group",
+        "label": "Allow group registration",
+        "help_text": "Let the buyer register multiple attendees in one order, each with their own name/email/ticket type.",
+        "required": false,
+        "type": "boolean",
+        "display": "toggle",
+        "default": true
+      },
+      {
+        "id": "max_attendees",
+        "name": "max_attendees",
+        "label": "Max attendees per order",
+        "required": false,
+        "type": "number",
+        "default": 10,
+        "min": 1,
+        "step": 1,
+        "visibility": {
+          "controlling_field": "allow_group",
+          "controlling_value_regex": "true",
+          "operator": "EQUAL"
+        }
+      }
+    ]
+  },
+  {
+    "id": "copy",
+    "name": "copy",
+    "label": "Copy",
+    "help_text": "Optional copy overrides. Defaults are neutral; the consuming theme/editor owns tone of voice.",
+    "type": "group",
+    "expanded": false,
+    "children": [
+      {
+        "id": "submit_label",
+        "name": "submit_label",
+        "label": "Submit button label",
+        "type": "text",
+        "required": false,
+        "default": "Register"
+      },
+      {
+        "id": "waitlist_message",
+        "name": "waitlist_message",
+        "label": "Waitlisted message",
+        "type": "text",
+        "required": false,
+        "default": "This event is full — you've been added to the waitlist. We'll email you if a place opens up."
+      },
+      {
+        "id": "confirmed_message",
+        "name": "confirmed_message",
+        "label": "Confirmed (free) message",
+        "type": "text",
+        "required": false,
+        "default": "You're registered. A confirmation email is on its way."
+      }
+    ]
+  }
+]

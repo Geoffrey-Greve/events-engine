@@ -1,0 +1,10 @@
+node_modules/
+.wrangler/
+dist/
+packages/worker/.dev.vars
+
+# Database dumps. A D1 export carries live contact, order and ticket rows, and a
+# git commit publishes them permanently — take backups outside the working tree.
+tmp/
+*.dump.sql
+*-backup.sql

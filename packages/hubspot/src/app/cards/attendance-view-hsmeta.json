@@ -1,0 +1,11 @@
+{
+  "uid": "paddock_attendance_view",
+  "type": "card",
+  "config": {
+    "name": "Registrations & Attendance",
+    "description": "View capacity, registrations, attendance, and live seat counts for the selected Event Engine record.",
+    "location": "crm.record.tab",
+    "entrypoint": "/app/cards/AttendanceView.tsx",
+    "objectTypes": ["MARKETING_EVENTS"]
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "name": "events",
+  "label": "Events",
+  "useForPages": true,
+  "allowPublicApiAccess": true,
+  "allowChildTables": false,
+  "enableChildTablePages": false,
+  "dynamicMetaTags": {
+    "DESCRIPTION": 4,
+    "FEATURED_IMAGE_URL": 11
+  },
+  "columns": [
+    {
+      "name": "title",
+      "label": "Title",
+      "type": "TEXT"
+    },
+    {
+      "name": "worker_event_id",
+      "label": "Worker event id (reserve :slug)",
+      "type": "TEXT"
+    },
+    {
+      "name": "summary",
+      "label": "Summary",
+      "type": "TEXT"
+    },
+    {
+      "name": "description",
+      "label": "Description",
+      "type": "RICHTEXT"
+    },
+    {
+      "name": "starts_at",
+      "label": "Starts at (UTC)",
+      "type": "DATETIME"
+    },
+    {
+      "name": "ends_at",
+      "label": "Ends at (UTC)",
+      "type": "DATETIME"
+    },
+    {
+      "name": "timezone",
+      "label": "Display timezone (IANA)",
+      "type": "TEXT"
+    },
+    {
+      "name": "is_online",
+      "label": "Online event",
+      "type": "BOOLEAN"
+    },
+    {
+      "name": "location",
+      "label": "Location",
+      "type": "TEXT"
+    },
+    {
+      "name": "status",
+      "label": "Status",
+      "type": "SELECT",
+      "options": [
+        { "name": "draft", "label": "Draft" },
+        { "name": "published", "label": "Published" }
+      ]
+    },
+    {
+      "name": "featured_image",
+      "label": "Featured image",
+      "type": "IMAGE"
+    },
+    {
+      "name": "ticket_types",
+      "label": "Ticket types (reference)",
+      "type": "FOREIGN_ID",
+      "foreignTableId": "__TICKET_TYPES_TABLE_ID__",
+      "foreignColumnId": 1
+    }
+  ]
+}

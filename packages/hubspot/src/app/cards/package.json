@@ -1,0 +1,12 @@
+{
+  "name": "paddock-event-engine-cards",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@hubspot/ui-extensions": "latest",
+    "react": "^18.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0"
+  }
+}

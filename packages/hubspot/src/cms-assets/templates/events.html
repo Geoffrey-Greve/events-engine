@@ -1,0 +1,103 @@
+<!--
+  templateType: page
+  label: Events (dynamic)
+  isAvailableForNewContent: true
+  enableDomainStylesheets: true
+
+  Dynamic template for the `events` HubDB table.
+  - dynamic_page_hubdb_row   present -> a single event was requested -> DETAIL + REGISTRATION
+  - dynamic_page_hubdb_table_id present (no row) -> the bare path -> LISTING
+
+  Styling here is intentionally minimal and unopinionated. Brand (colour, type, spacing,
+  logo, chrome) belongs to the consuming theme — this template only provides structure and
+  semantic hooks (the `.evt-*` classes) for the theme to style.
+-->
+
+{% require_css get_asset_url("../css/events.css") %}
+
+<div class="evt-page">
+{% if dynamic_page_hubdb_row %}
+
+  {# ----------------------------------------------------------------------- #}
+  {# DETAIL + REGISTRATION                                                    #}
+  {# ----------------------------------------------------------------------- #}
+  {% set event = dynamic_page_hubdb_row %}
+
+  {# Ticket types for THIS event, joined by event_path (portable — no table ids).      #}
+  {# Reference `ticket_types` by NAME so the template stays portal-agnostic. If your    #}
+  {# portal has table-name lookup disabled, replace "ticket_types" with the numeric id  #}
+  {# (a single per-portal edit / theme setting).                                        #}
+  {% set ticket_types = hubdb_table_rows("ticket_types", "event_path=" ~ event.hs_path ~ "&orderBy=sort_order") %}
+
+  <article class="evt-detail" itemscope itemtype="https://schema.org/Event">
+    <header class="evt-detail__header">
+      <h1 class="evt-detail__title" itemprop="name">{{ event.title }}</h1>
+      {% if event.starts_at %}
+        <p class="evt-detail__when">
+          <time itemprop="startDate" datetime="{{ event.starts_at|datetimeformat('%Y-%m-%dT%H:%M:%S%z') }}">
+            {{ event.starts_at|datetimeformat('%e %B %Y, %l:%M %p', event.timezone) }}
+          </time>
+          {% if event.timezone %}<span class="evt-detail__tz">({{ event.timezone }})</span>{% endif %}
+        </p>
+      {% endif %}
+      <p class="evt-detail__where" itemprop="{{ event.is_online ? 'eventAttendanceMode' : 'location' }}">
+        {{ event.is_online ? "Online event" : event.location }}
+      </p>
+    </header>
+
+    {% if event.featured_image %}
+      <img class="evt-detail__image" src="{{ event.featured_image.url }}"
+           alt="{{ event.featured_image.alt_text|default(event.title, true) }}" itemprop="image" />
+    {% endif %}
+
+    {% if event.summary %}<p class="evt-detail__summary">{{ event.summary }}</p>{% endif %}
+
+    <div class="evt-detail__body" itemprop="description">
+      {{ event.description }}
+    </div>
+
+    {# Registration widget — reads availability live from the worker, never from HubDB. #}
+    <section class="evt-detail__register" id="register">
+      {% module "event_registration"
+        path="../modules/event-registration.module"
+        label="Event registration" %}
+    </section>
+  </article>
+
+{% elif dynamic_page_hubdb_table_id %}
+
+  {# ----------------------------------------------------------------------- #}
+  {# LISTING                                                                  #}
+  {# ----------------------------------------------------------------------- #}
+  {% set events = hubdb_table_rows(dynamic_page_hubdb_table_id, "status=published&orderBy=starts_at") %}
+
+  <h1 class="evt-listing__title">Events</h1>
+  {% if events|length == 0 %}
+    <p class="evt-listing__empty">No upcoming events.</p>
+  {% else %}
+    <ul class="evt-listing">
+      {% for event in events %}
+        <li class="evt-listing__item">
+          <a class="evt-card" href="{{ request.path_and_query|split('?')|first }}/{{ event.hs_path }}">
+            {% if event.featured_image %}
+              <img class="evt-card__image" src="{{ event.featured_image.url }}"
+                   alt="{{ event.featured_image.alt_text|default(event.title, true) }}" loading="lazy" />
+            {% endif %}
+            <span class="evt-card__title">{{ event.title }}</span>
+            {% if event.starts_at %}
+              <span class="evt-card__when">
+                {{ event.starts_at|datetimeformat('%e %b %Y', event.timezone) }}
+              </span>
+            {% endif %}
+            {% if event.summary %}<span class="evt-card__summary">{{ event.summary }}</span>{% endif %}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+{% else %}
+  {# Not a dynamic render (e.g. the template opened directly in the editor preview). #}
+  <p class="evt-listing__empty">Bind this page to the <code>events</code> HubDB table to render.</p>
+{% endif %}
+</div>

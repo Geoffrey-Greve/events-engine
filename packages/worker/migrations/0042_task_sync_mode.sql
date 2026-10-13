@@ -1,0 +1,25 @@
+-- migrations/0042_task_sync_mode.sql
+--
+-- Whether this tenant's owner notifications are mirrored to a HubSpot task.
+--
+-- Phase 18.3 is human-in-the-loop: oversell, waitlist promotion, fast_sellout,
+-- contact_conflict and unpaid_invoice all open a `pending_decisions` row and assign the
+-- event owner a HubSpot task. The decision is the RECORD and the task is only the
+-- NOTIFICATION -- the row is written to D1 first, and the App Card lists and resolves it
+-- either way -- so a portal that cannot write tasks loses the telling, not the queue.
+--
+-- `crm.objects.tasks.write` is unavailable to both 2026.03 project apps and account
+-- service keys (see scripts/check-hubspot-app.mjs), so for such a portal EVERY decision
+-- enqueues a `notify.owner_task` row that 403s and dies. That is worse than the wasted
+-- call: a permanently-firing `outbox_dead` is how a real dead row stops being noticed, and
+-- `outbox_dead` is the signal that found the credential fault this column was written for.
+-- Mirrors `note_sync_mode` (0022) exactly, for the same reason and with the same shape.
+--
+--   NULL   -- mirror the notification to a HubSpot task, which is what the worker has
+--            always done. No installed portal changes behaviour on deploy.
+--   'off'  -- record the decision and raise no task. The App Home pending-decisions list
+--            is then the only surface, which is why it exists.
+--
+-- Turning this off does NOT auto-resolve anything and does not touch a decision's
+-- lifecycle: the worker still never resolves an oversell or a waitlist by itself.
+ALTER TABLE tenants ADD COLUMN task_sync_mode TEXT;

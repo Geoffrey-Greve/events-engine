@@ -1,0 +1,70 @@
+Copyright (c) 2026 Refuel Creative. All rights reserved.
+
+PROPRIETARY AND CONFIDENTIAL
+
+This software and its source code, documentation, configuration, database
+migrations, and all other material in this repository (the "Software") are the
+confidential and proprietary property of Refuel Creative ("Refuel"). The
+Software is licensed, not sold. No licence, express or implied, is granted by
+this file or by the publication or disclosure of the Software.
+
+1. No grant of rights
+
+   Except under a separate written agreement signed by Refuel, no person or
+   entity is granted any right to use, copy, modify, merge, publish, distribute,
+   sublicense, create derivative works of, sell, or otherwise exploit the
+   Software, in whole or in part, in source or object form.
+
+   Access to this repository — including access granted for the purpose of
+   evaluation, review, integration, or contracted development work — does not
+   itself grant any of the rights withheld above.
+
+2. Customer use
+
+   Refuel operates the Software as a hosted service. A customer's rights to use
+   that service are defined solely by the subscription or services agreement
+   between that customer and Refuel. Nothing in this repository grants a
+   customer any right to the source code, nor any right to self-host, fork, or
+   run the Software independently of the service Refuel operates.
+
+3. Confidentiality
+
+   The Software includes trade secrets and confidential information of Refuel.
+   Any person or entity with access to the Software must keep it confidential,
+   must not disclose it to any third party, and must not use it for any purpose
+   other than the one for which access was granted.
+
+4. Contributions
+
+   Unless a separate written agreement provides otherwise, any contribution
+   submitted to this repository is assigned to Refuel, and the contributor
+   waives any moral rights in that contribution to the extent permitted by law.
+
+5. Third-party components
+
+   The Software incorporates and depends on third-party open-source components,
+   which remain subject to their own licences. Those licences apply to those
+   components only and grant no rights in the Software itself. See
+   THIRD-PARTY-NOTICES.md.
+
+6. No warranty
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. THIS CLAUSE DOES NOT
+   EXCLUDE, RESTRICT, OR MODIFY ANY GUARANTEE, RIGHT, OR REMEDY THAT CANNOT
+   LAWFULLY BE EXCLUDED, RESTRICTED, OR MODIFIED, INCLUDING UNDER THE
+   AUSTRALIAN CONSUMER LAW.
+
+7. Limitation of liability
+
+   TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL REFUEL BE LIABLE
+   FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT, OR
+   OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR ITS
+   USE.
+
+8. Governing law
+
+   This licence is governed by the laws of South Australia, Australia.
+
+Enquiries: ryan@refuelcreative.com.au

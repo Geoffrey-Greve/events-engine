@@ -1,0 +1,8 @@
+{
+  "uid": "paddock_event_engine_home",
+  "type": "page",
+  "config": {
+    "entrypoint": "/app/pages/Home.tsx",
+    "location": "home"
+  }
+}

@@ -1,0 +1,10 @@
+packages:
+  - "packages/*"
+
+minimumReleaseAge: 0
+
+allowBuilds:
+  core-js: true
+  esbuild: true
+  sharp: true
+  workerd: true
